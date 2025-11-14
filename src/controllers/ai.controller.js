@@ -4,19 +4,22 @@ import { validate } from '../utils/validation.js';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { logger } from '../utils/logger.js';
+import { AI_MODELS } from '../constants/index.js';
+
 
 const chatSchema = z.object({
   messages: z.array(z.object({
     role: z.enum(['user', 'assistant', 'system']),
     content: z.string().min(1).max(10000),
   })).min(1).max(50),
-  model: z.string().optional(),
+  model: z.enum([AI_MODELS.GPT_3_5_TURBO, AI_MODELS.GPT_4, AI_MODELS.GPT_4_TURBO]).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().positive().optional(),
 });
 
 const textSchema = z.object({
   prompt: z.string().min(1).max(10000),
+  model: z.enum([AI_MODELS.GPT_3_5_TURBO, AI_MODELS.GPT_4, AI_MODELS.GPT_4_TURBO]).optional(),
   systemPrompt: z.string().max(1000).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().positive().optional(),
@@ -33,16 +36,18 @@ const summarizeSchema = z.object({
 
 export const aiController = {
   chat: asyncHandler(async (req, res) => {
-    const data = validate(chatSchema, req.body);    
+    const data = validate(chatSchema, req.body);  
+    const model = req.body.model || AI_MODELS.GPT_3_5_TURBO;  
     logger.debug('Chat request received', { messageCount: data.messages.length });
-    const response = await aiService.chatCompletion(data.messages);
+    const response = await aiService.chatCompletion(data.messages, model);
     sendSuccess(res, { response }, 'Chat completion successful');
   }),
 
   generate: asyncHandler(async (req, res) => {
     const data = validate(textSchema, req.body);
+    const model = req.body.model || AI_MODELS.GPT_3_5_TURBO;    
     logger.debug('Text generation request received', { promptLength: data.prompt.length });
-    const response = await aiService.generateText(data.prompt, data.systemPrompt);
+    const response = await aiService.generateText(data.prompt, data.systemPrompt, model);
     sendSuccess(res, { response }, 'Text generated successfully');
   }),
 

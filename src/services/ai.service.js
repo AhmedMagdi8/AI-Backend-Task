@@ -120,7 +120,7 @@ class OpenAIService {
     }
   }
 
-  async chatCompletion(messages) {
+  async chatCompletion(messages, model) {
     await this.ensureInitialized();
 
     // Check cache first
@@ -130,9 +130,9 @@ class OpenAIService {
     if (cached) {
       return cached;
     }
-
+    
     const response = await this.client.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model,
       messages: messages,
       temperature: 0.7,
       max_tokens: 1000,
@@ -146,7 +146,7 @@ class OpenAIService {
     return result;
   }
 
-  async generateText(prompt, systemPrompt) {
+  async generateText(prompt, systemPrompt, model) {
     const messages = [];
     
     if (systemPrompt) {
@@ -155,7 +155,7 @@ class OpenAIService {
     
     messages.push({ role: 'user', content: prompt });
 
-    return this.chatCompletion(messages);
+    return this.chatCompletion(messages, model);
   }
 
   async analyzeSentiment(text) {
@@ -186,9 +186,9 @@ class AIService {
     }
   }
 
-  async chatCompletion(messages) {
+  async chatCompletion(messages, model) {
     try {
-      return await this.service.chatCompletion(messages);
+      return await this.service.chatCompletion(messages, model);
     } catch (error) {
       // Fallback to mock if OpenAI fails
       if (this.useOpenAI) {
@@ -199,9 +199,9 @@ class AIService {
     }
   }
 
-  async generateText(prompt, systemPrompt) {
+  async generateText(prompt, systemPrompt, model) {
     try {
-      return await this.service.generateText(prompt, systemPrompt);
+      return await this.service.generateText(prompt, systemPrompt, model);
     } catch (error) {
       if (this.useOpenAI) {
         logger.warn('OpenAI request failed, falling back to mock service', error);
