@@ -3,10 +3,23 @@ class Logger {
     this.isDevelopment = process.env.NODE_ENV === 'development';
   }
 
+  extractRequestId(args) {
+    if (!args || args.length === 0) return null;
+
+    const meta = args[0];
+    if (meta && typeof meta === 'object' && 'requestId' in meta) {
+      return meta.requestId;
+    }
+
+    return null;
+  }
+
   formatMessage(level, message, ...args) {
     const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-    
+    const requestId = this.extractRequestId(args);
+    const basePrefix = `[${timestamp}] [${level.toUpperCase()}]`;
+    const idPrefix = requestId ? ` [${requestId}]` : '';
+    const prefix = `${basePrefix}${idPrefix}`;
     if (args.length === 0) {
       return `${prefix} ${message}`;
     }
