@@ -124,6 +124,7 @@ class OpenAIService {
     await this.ensureInitialized();
 
     // Check cache first
+    
     const cacheKey = `chat:${hash(JSON.stringify(messages))}`;
     const cached = cacheService.get(cacheKey);
     if (cached) {

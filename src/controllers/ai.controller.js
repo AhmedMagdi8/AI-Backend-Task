@@ -33,7 +33,7 @@ const summarizeSchema = z.object({
 
 export const aiController = {
   chat: asyncHandler(async (req, res) => {
-    const data = validate(chatSchema, req.body);
+    const data = validate(chatSchema, req.body);    
     logger.debug('Chat request received', { messageCount: data.messages.length });
     const response = await aiService.chatCompletion(data.messages);
     sendSuccess(res, { response }, 'Chat completion successful');
